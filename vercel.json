@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/i/:filename",
+      "destination": "https://ghtblikdfxhwrpekvhgg.supabase.co/storage/v1/object/public/images/:filename"
+    }
+  ]
+}
