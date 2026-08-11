@@ -381,7 +381,8 @@
                     .getPublicUrl(randomName);
 
 
-            const imageUrl = publicData.publicUrl;
+            const imageUrl =
+    window.location.origin + "/i/" + randomName;
 
 
             preview.src = imageUrl;
