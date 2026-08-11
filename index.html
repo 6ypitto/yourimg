@@ -384,7 +384,9 @@
     }
 
     loading.style.display = "none";
-} {
+async function copyUrl() {
+
+    try {
 
         await navigator.clipboard.writeText(
             urlInput.value
@@ -392,22 +394,29 @@
 
         alert("Ссылка скопирована!");
 
-    }
+    } catch (error) {
 
+        urlInput.select();
 
-    // ==========================================
-    // ERROR
-    // ==========================================
+        document.execCommand("copy");
 
-    function showError(message) {
-
-        errorBox.textContent = message;
-
-        errorBox.style.display = "block";
-
-        loading.style.display = "none";
+        alert("Ссылка скопирована!");
 
     }
+}
+
+
+// ERROR
+
+function showError(message) {
+
+    errorBox.textContent = message;
+
+    errorBox.style.display = "block";
+
+    loading.style.display = "none";
+
+}
 
 </script>
 
