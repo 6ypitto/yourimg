@@ -321,97 +321,70 @@
     // UPLOAD
     // ==========================================
 
-    async function uploadFile(file) {
+   async function uploadFile(file) {
 
-        errorBox.style.display = "none";
-        result.style.display = "none";
+    errorBox.style.display = "none";
+    result.style.display = "none";
 
-        // Проверяем тип
+    if (!file.type.startsWith("image/")) {
+        showError("Можно загружать только изображения.");
+        return;
+    }
 
-        if (!file.type.startsWith("image/")) {
+    if (file.size > 50 * 1024 * 1024) {
+        showError("Максимальный размер файла — 50 MB.");
+        return;
+    }
 
-            showError("Можно загружать только изображения.");
+    loading.style.display = "block";
 
-            return;
+    const extension = file.name.split(".").pop().toLowerCase();
+
+    const randomName =
+        crypto.randomUUID().replace(/-/g, "").substring(0, 8)
+        + "." + extension;
+
+    try {
+
+        const { data, error } =
+            await supabaseClient.storage
+                .from("images")
+                .upload(randomName, file, {
+                    cacheControl: "3600",
+                    upsert: false,
+                    contentType: file.type
+                });
+
+        if (error) {
+            throw error;
         }
 
+        const { data: publicData } =
+            supabaseClient.storage
+                .from("images")
+                .getPublicUrl(randomName);
 
-        // Максимум 50 MB
+        const imageUrl =
+            window.location.origin + "/i/" + randomName;
 
-        if (file.size > 50 * 1024 * 1024) {
+        preview.src = publicData.publicUrl;
 
-            showError("Максимальный размер файла — 50 MB.");
+        urlInput.value = imageUrl;
 
-            return;
-        }
+        result.style.display = "block";
 
+    } catch (error) {
 
-        loading.style.display = "block";
+        console.error(error);
 
-
-        // Уникальное имя
-
-       const randomName =
-    crypto.randomUUID().replace(/-/g, "").substring(0, 8);
-
-
-        try {
-
-            const { data, error } =
-                await supabaseClient.storage
-    .from("images")
-    .upload(randomName, file, {
-        cacheControl: "3600",
-        upsert: false,
-        contentType: file.type
-    });
-                    });
-
-
-            if (error) {
-                throw error;
-            }
-
-
-            // Получаем публичную ссылку
-
-            const { data: publicData } =
-                supabaseClient.storage
-                    .from("images")
-                    .getPublicUrl(randomName);
-
-
-            const imageUrl =
-    window.location.origin + "/i/" + randomName;
-
-
-            preview.src = imageUrl;
-
-            urlInput.value = imageUrl;
-
-            result.style.display = "block";
-
-        } catch (error) {
-
-            console.error(error);
-
-            showError(
-                "Ошибка загрузки: " + error.message
-            );
-
-        }
-
-
-        loading.style.display = "none";
+        showError(
+            "Ошибка загрузки: " + error.message
+        );
 
     }
 
-
-    // ==========================================
-    // COPY
-    // ==========================================
-
-    async function copyUrl() {
+    loading.style.display = "none";
+} {
 
         await navigator.clipboard.writeText(
             urlInput.value
