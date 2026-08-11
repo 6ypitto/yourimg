@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>YourImg — Image Hosting</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #0b0d10;
+            color: #f1f3f5;
+            font-family: Arial, Helvetica, sans-serif;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            padding: 40px 20px;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 60px;
+        }
+
+        .logo {
+            font-size: 25px;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+
+        .logo span {
+            color: #8b5cf6;
+        }
+
+        .subtitle {
+            color: #8c929b;
+            font-size: 14px;
+        }
+
+        .upload-box {
+            border: 2px dashed #30343b;
+            border-radius: 18px;
+            padding: 70px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+            background: #101318;
+        }
+
+        .upload-box:hover,
+        .upload-box.dragover {
+            border-color: #8b5cf6;
+            background: #13111a;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            margin: 0 0 10px;
+            font-size: 30px;
+        }
+
+        .description {
+            color: #8c929b;
+            margin-bottom: 28px;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 12px 22px;
+            border-radius: 9px;
+            background: #8b5cf6;
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            font-size: 15px;
+        }
+
+        .button:hover {
+            background: #7c4fe0;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .formats {
+            margin-top: 18px;
+            color: #686e77;
+            font-size: 13px;
+        }
+
+        .result {
+            display: none;
+            margin-top: 30px;
+            background: #101318;
+            border: 1px solid #282d35;
+            border-radius: 14px;
+            padding: 20px;
+        }
+
+        .result img {
+            display: block;
+            max-width: 100%;
+            max-height: 400px;
+            margin: 0 auto 20px;
+            border-radius: 10px;
+        }
+
+        .url-box {
+            display: flex;
+            gap: 8px;
+        }
+
+        .url-box input {
+            flex: 1;
+            min-width: 0;
+            background: #0b0d10;
+            border: 1px solid #30343b;
+            color: white;
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .error {
+            display: none;
+            margin-top: 20px;
+            color: #ff6b6b;
+            text-align: center;
+        }
+
+        .loading {
+            display: none;
+            margin-top: 20px;
+            text-align: center;
+            color: #aaa;
+        }
+
+        footer {
+            text-align: center;
+            color: #555b64;
+            font-size: 13px;
+            margin-top: 70px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px 15px;
+            }
+
+            header {
+                margin-bottom: 40px;
+            }
+
+            .upload-box {
+                padding: 50px 15px;
+            }
+
+            h1 {
+                font-size: 25px;
+            }
+
+            .url-box {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <header>
+        <div class="logo">your<span>img</span></div>
+        <div class="subtitle">Simple image hosting</div>
+    </header>
+
+    <div class="upload-box" id="uploadBox">
+
+        <div class="upload-icon">🖼️</div>
+
+        <h1>Upload an image</h1>
+
+        <div class="description">
+            Drag & drop your image here
+        </div>
+
+        <label class="button">
+            Choose image
+            <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp">
+        </label>
+
+        <div class="formats">
+            JPG · PNG · WEBP · Maximum 50 MB
+        </div>
+
+    </div>
+
+    <div class="loading" id="loading">
+        Uploading...
+    </div>
+
+    <div class="error" id="error"></div>
+
+    <div class="result" id="result">
+
+        <img id="preview">
+
+        <div class="url-box">
+            <input id="urlInput" readonly>
+            <button class="button" onclick="copyUrl()">
+                Copy
+            </button>
+        </div>
+
+    </div>
+
+    <footer>
+        YourImg — free image hosting
+    </footer>
+
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+
+    // ==========================================
+    // SUPABASE
+    // ==========================================
+
+    const SUPABASE_URL = "https://ghtblikdfxhwrpekhvgg.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_49LES9c_GLlaAFBIppzD_A_oO5_xEYP";
+
+    const supabaseClient = supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY
+    );
+
+
+    // ==========================================
+    // ELEMENTS
+    // ==========================================
+
+    const uploadBox = document.getElementById("uploadBox");
+    const fileInput = document.getElementById("fileInput");
+    const loading = document.getElementById("loading");
+    const errorBox = document.getElementById("error");
+    const result = document.getElementById("result");
+    const preview = document.getElementById("preview");
+    const urlInput = document.getElementById("urlInput");
+
+
+    // ==========================================
+    // FILE SELECT
+    // ==========================================
+
+    fileInput.addEventListener("change", function () {
+
+        if (this.files.length > 0) {
+            uploadFile(this.files[0]);
+        }
+
+    });
+
+
+    // ==========================================
+    // DRAG & DROP
+    // ==========================================
+
+    uploadBox.addEventListener("dragover", function (e) {
+
+        e.preventDefault();
+
+        uploadBox.classList.add("dragover");
+
+    });
+
+
+    uploadBox.addEventListener("dragleave", function () {
+
+        uploadBox.classList.remove("dragover");
+
+    });
+
+
+    uploadBox.addEventListener("drop", function (e) {
+
+        e.preventDefault();
+
+        uploadBox.classList.remove("dragover");
+
+        const files = e.dataTransfer.files;
+
+        if (files.length > 0) {
+            uploadFile(files[0]);
+        }
+
+    });
+
+
+    // ==========================================
+    // UPLOAD
+    // ==========================================
+
+    async function uploadFile(file) {
+
+        errorBox.style.display = "none";
+        result.style.display = "none";
+
+        // Проверяем тип
+
+        if (!file.type.startsWith("image/")) {
+
+            showError("Можно загружать только изображения.");
+
+            return;
+        }
+
+
+        // Максимум 50 MB
+
+        if (file.size > 50 * 1024 * 1024) {
+
+            showError("Максимальный размер файла — 50 MB.");
+
+            return;
+        }
+
+
+        loading.style.display = "block";
+
+
+        // Уникальное имя
+
+        const extension = file.name.split(".").pop();
+
+        const randomName =
+            crypto.randomUUID() + "." + extension;
+
+
+        try {
+
+            const { data, error } =
+                await supabaseClient.storage
+                    .from("images")
+                    .upload(randomName, file, {
+                        cacheControl: "3600",
+                        upsert: false
+                    });
+
+
+            if (error) {
+                throw error;
+            }
+
+
+            // Получаем публичную ссылку
+
+            const { data: publicData } =
+                supabaseClient.storage
+                    .from("images")
+                    .getPublicUrl(randomName);
+
+
+            const imageUrl = publicData.publicUrl;
+
+
+            preview.src = imageUrl;
+
+            urlInput.value = imageUrl;
+
+            result.style.display = "block";
+
+        } catch (error) {
+
+            console.error(error);
+
+            showError(
+                "Ошибка загрузки: " + error.message
+            );
+
+        }
+
+
+        loading.style.display = "none";
+
+    }
+
+
+    // ==========================================
+    // COPY
+    // ==========================================
+
+    async function copyUrl() {
+
+        await navigator.clipboard.writeText(
+            urlInput.value
+        );
+
+        alert("Ссылка скопирована!");
+
+    }
+
+
+    // ==========================================
+    // ERROR
+    // ==========================================
+
+    function showError(message) {
+
+        errorBox.textContent = message;
+
+        errorBox.style.display = "block";
+
+        loading.style.display = "none";
+
+    }
+
+</script>
+
+</body>
+</html>
