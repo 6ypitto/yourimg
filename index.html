@@ -354,31 +354,25 @@ function showError(message) {
     errorBox.style.display = "block";
     loading.style.display = "none";
 }
-    const path = window.location.pathname;
+    const imageName = new URLSearchParams(
+    window.location.search
+).get("image");
 
-if (path.startsWith("/i/")) {
+if (imageName) {
 
-    const imageName = decodeURIComponent(
-        path.substring(3)
-    );
+    const imageUrl =
+        SUPABASE_URL +
+        "/storage/v1/object/public/images/" +
+        encodeURIComponent(imageName);
 
-    if (imageName) {
+    preview.src = imageUrl;
 
-        const imageUrl =
-            SUPABASE_URL +
-            "/storage/v1/object/public/images/" +
-            encodeURIComponent(imageName);
+    urlInput.value =
+        window.location.origin + "/i/" + imageName;
 
-        preview.src = imageUrl;
+    result.style.display = "block";
 
-        urlInput.value =
-            window.location.origin + "/i/" + imageName;
-
-        result.style.display = "block";
-
-        uploadBox.style.display = "none";
-    }
-}
+    uploadBox.style.display = "none";
 }
 </script>
 
