@@ -354,6 +354,20 @@ function showError(message) {
     errorBox.style.display = "block";
     loading.style.display = "none";
 }
+    const imageName = new URLSearchParams(window.location.search).get("image");
+
+if (imageName) {
+    const imageUrl =
+        SUPABASE_URL +
+        "/storage/v1/object/public/images/" +
+        encodeURIComponent(imageName);
+
+    preview.src = imageUrl;
+    urlInput.value = window.location.origin + "/i/" + imageName;
+
+    result.style.display = "block";
+    uploadBox.style.display = "none";
+}
 </script>
 
 </body>
