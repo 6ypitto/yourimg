@@ -351,20 +351,20 @@
 
         // Уникальное имя
 
-        const extension = file.name.split(".").pop();
-
-        const randomName =
-            crypto.randomUUID() + "." + extension;
+       const randomName =
+    crypto.randomUUID().replace(/-/g, "").substring(0, 8);
 
 
         try {
 
             const { data, error } =
                 await supabaseClient.storage
-                    .from("images")
-                    .upload(randomName, file, {
-                        cacheControl: "3600",
-                        upsert: false
+    .from("images")
+    .upload(randomName, file, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: file.type
+    });
                     });
 
 
