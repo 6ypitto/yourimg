@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/i/:id",
+      "destination": "https://ghtblikdfxhwrpekvhgg.supabase.co/storage/v1/object/public/images/:id"
+    }
+  ]
+}
