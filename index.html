@@ -242,87 +242,47 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
+const SUPABASE_URL = "https://ghtblikdfxhwrpekhvgg.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_49LES9c_GLlaAFBIppzD_A_oO5_xEYP";
 
-    // ==========================================
-    // SUPABASE
-    // ==========================================
+const supabaseClient = supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+);
 
-    const SUPABASE_URL = "https://ghtblikdfxhwrpekhvgg.supabase.co";
-    const SUPABASE_ANON_KEY = "sb_publishable_49LES9c_GLlaAFBIppzD_A_oO5_xEYP";
+const uploadBox = document.getElementById("uploadBox");
+const fileInput = document.getElementById("fileInput");
+const loading = document.getElementById("loading");
+const errorBox = document.getElementById("error");
+const result = document.getElementById("result");
+const preview = document.getElementById("preview");
+const urlInput = document.getElementById("urlInput");
 
-    const supabaseClient = supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_ANON_KEY
-    );
+fileInput.addEventListener("change", function () {
+    if (this.files.length > 0) {
+        uploadFile(this.files[0]);
+    }
+});
 
+uploadBox.addEventListener("dragover", function (e) {
+    e.preventDefault();
+    uploadBox.classList.add("dragover");
+});
 
-    // ==========================================
-    // ELEMENTS
-    // ==========================================
+uploadBox.addEventListener("dragleave", function () {
+    uploadBox.classList.remove("dragover");
+});
 
-    const uploadBox = document.getElementById("uploadBox");
-    const fileInput = document.getElementById("fileInput");
-    const loading = document.getElementById("loading");
-    const errorBox = document.getElementById("error");
-    const result = document.getElementById("result");
-    const preview = document.getElementById("preview");
-    const urlInput = document.getElementById("urlInput");
+uploadBox.addEventListener("drop", function (e) {
+    e.preventDefault();
+    uploadBox.classList.remove("dragover");
 
+    if (e.dataTransfer.files.length > 0) {
+        uploadFile(e.dataTransfer.files[0]);
+    }
+});
 
-    // ==========================================
-    // FILE SELECT
-    // ==========================================
-
-    fileInput.addEventListener("change", function () {
-
-        if (this.files.length > 0) {
-            uploadFile(this.files[0]);
-        }
-
-    });
-
-
-    // ==========================================
-    // DRAG & DROP
-    // ==========================================
-
-    uploadBox.addEventListener("dragover", function (e) {
-
-        e.preventDefault();
-
-        uploadBox.classList.add("dragover");
-
-    });
-
-
-    uploadBox.addEventListener("dragleave", function () {
-
-        uploadBox.classList.remove("dragover");
-
-    });
-
-
-    uploadBox.addEventListener("drop", function (e) {
-
-        e.preventDefault();
-
-        uploadBox.classList.remove("dragover");
-
-        const files = e.dataTransfer.files;
-
-        if (files.length > 0) {
-            uploadFile(files[0]);
-        }
-
-    });
-
-
-    // ==========================================
-    // UPLOAD
-    // ==========================================
-
-   async function uploadFile(file) {
-
+async function uploadFile(file) {
     errorBox.style.display = "none";
     result.style.display = "none";
 
@@ -339,85 +299,61 @@
     loading.style.display = "block";
 
     const extension = file.name.split(".").pop().toLowerCase();
-
     const randomName =
-        crypto.randomUUID().replace(/-/g, "").substring(0, 8)
-        + "." + extension;
+        crypto.randomUUID().replace(/-/g, "").substring(0, 8) +
+        "." +
+        extension;
 
     try {
-
-        const { data, error } =
-            await supabaseClient.storage
-                .from("images")
-                .upload(randomName, file, {
-                    cacheControl: "3600",
-                    upsert: false,
-                    contentType: file.type
-                });
+        const { error } = await supabaseClient.storage
+            .from("images")
+            .upload(randomName, file, {
+                cacheControl: "3600",
+                upsert: false,
+                contentType: file.type
+            });
 
         if (error) {
             throw error;
         }
 
-        const { data: publicData } =
-            supabaseClient.storage
-                .from("images")
-                .getPublicUrl(randomName);
+        const { data } = supabaseClient.storage
+            .from("images")
+            .getPublicUrl(randomName);
 
-        const imageUrl =
+        const publicUrl = data.publicUrl;
+        const shortUrl =
             window.location.origin + "/i/" + randomName;
 
-        preview.src = publicData.publicUrl;
-
-        urlInput.value = imageUrl;
+        preview.src = publicUrl;
+        urlInput.value = shortUrl;
 
         result.style.display = "block";
 
     } catch (error) {
-
         console.error(error);
-
-        showError(
-            "Ошибка загрузки: " + error.message
-        );
-
+        showError("Ошибка загрузки: " + error.message);
     }
 
     loading.style.display = "none";
-async function copyUrl() {
-
-    try {
-
-        await navigator.clipboard.writeText(
-            urlInput.value
-        );
-
-        alert("Ссылка скопирована!");
-
-    } catch (error) {
-
-        urlInput.select();
-
-        document.execCommand("copy");
-
-        alert("Ссылка скопирована!");
-
-    }
 }
 
-
-// ERROR
+async function copyUrl() {
+    try {
+        await navigator.clipboard.writeText(urlInput.value);
+        alert("Ссылка скопирована!");
+    } catch (error) {
+        urlInput.select();
+        document.execCommand("copy");
+        alert("Ссылка скопирована!");
+    }
+}
 
 function showError(message) {
-
     errorBox.textContent = message;
-
     errorBox.style.display = "block";
-
     loading.style.display = "none";
-
 }
-
 </script>
 
 </body>
