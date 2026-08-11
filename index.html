@@ -322,8 +322,7 @@ async function uploadFile(file) {
             .getPublicUrl(randomName);
 
         const publicUrl = data.publicUrl;
-        const shortUrl =
-    window.location.origin + "/i/" + randomName;
+        cconst shortUrl = window.location.origin + "/i/" + randomName;
 
         preview.src = publicUrl;
         urlInput.value = shortUrl;
